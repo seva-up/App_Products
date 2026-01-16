@@ -1,0 +1,13 @@
+App:
+  name: "MY_APP"
+  version: "1.0.0"
+  env: "local"
+  port: "8085"
+  host: "localhost"
+
+Db:
+  name: "postgres"
+  user: "postgres"
+  password: "postgres"
+  host: "localhost"
+  port: "8083"
