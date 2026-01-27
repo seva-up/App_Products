@@ -11,3 +11,17 @@ Db:
   password: "postgres"
   host: "localhost"
   port: "8083"
+
+Jwt:
+  secret_key: "your-super-secret-key-minimum-32-characters-long-change-in-production"
+  access_token: ""
+  refresh_token: ""
+  issuer: ""
+  access_ttl: 30m
+  refresh_ttl: 24h
+
+Redis:
+  host: "localhost"
+  port: "6379"
+  password: ""
+  db: 0

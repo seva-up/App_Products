@@ -3,25 +3,28 @@ package routesAuth
 import (
 	"net/http"
 
-	"github.com/gorilla/mux"
+	"github.com/gin-gonic/gin"
 	"github.com/seva-up/App_Products/internal/auth"
 	"github.com/seva-up/App_Products/internal/auth/deliveryAuth/httpAuth"
 )
 
-func NewRouter(authService auth.UserService) *mux.Router {
-	router := mux.NewRouter()
+func NewGinRouter(authService auth.UserService) *gin.Engine {
+	router := gin.Default()
 
 	authHandler := httpAuth.NewAuthDelivery(authService)
 
-	public := router.PathPrefix("/api/v1").Subrouter()
+	publicApi := router.Group("/api/v1")
 	{
-		public.HandleFunc("/register", authHandler.Register).Methods("POST")
-		public.HandleFunc("/health", healthCheck).Methods("GET")
+		publicApi.POST("/register", authHandler.Register)
+		publicApi.POST("/login", authHandler.Login)
+		publicApi.POST("/logout", authHandler.Logout)
+		publicApi.POST("/refresh", authHandler.Refresh)
+		publicApi.GET("/session", authHandler.GetSession)
+		publicApi.GET("/health", healthCheck)
 	}
 
 	return router
 }
-func healthCheck(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("OK"))
+func healthCheck(c *gin.Context) {
+	c.String(http.StatusOK, "OK")
 }

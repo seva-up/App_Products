@@ -15,6 +15,7 @@ import (
 	"github.com/seva-up/App_Products/internal/auth/deliveryAuth/routesAuth"
 	"github.com/seva-up/App_Products/internal/auth/repositoryAuth"
 	"github.com/seva-up/App_Products/internal/auth/serviceAuth"
+	"github.com/seva-up/App_Products/internal/middleware"
 )
 
 func main() {
@@ -36,13 +37,22 @@ func main() {
 	if err = pool.Ping(context.Background()); err != nil {
 		log.Fatal("БД не отвечает: ", err)
 	}
+
+	redisClient, err := repositoryAuth.NewRedisClient(&cfg.Redis)
+	if err != nil {
+		log.Fatalf("Редис не отвечает на стадии подключения: %v", err)
+	}
+	defer redisClient.Close()
 	log.Println("Подключение к бд установлено")
+
+	redisRepo := repositoryAuth.NewAuthRedisRepository(redisClient, cfg)
 	userRepo := repositoryAuth.NewAuthRepository(pool)
-	authServ := serviceAuth.NewUserService(userRepo)
-	router := routesAuth.NewRouter(authServ)
+	authServ := serviceAuth.NewUserService(userRepo, redisRepo, cfg)
+	routerGin := routesAuth.NewGinRouter(authServ)
+	routerGin.Use(middleware.AuthMiddleware(redisRepo))
 	server := &http.Server{
 		Addr:         ":" + cfg.App.Port,
-		Handler:      router,
+		Handler:      routerGin,
 		ReadTimeout:  15 * time.Second,
 		WriteTimeout: 15 * time.Second,
 		IdleTimeout:  60 * time.Second,
@@ -72,4 +82,9 @@ func main() {
 func formatDBURL(cfg *config.Config) string {
 	return "postgresql://" + cfg.Db.User + ":" + cfg.Db.Password +
 		"@" + cfg.Db.Host + ":" + cfg.Db.Port + "/" + cfg.Db.Name
+}
+
+func formatDBREdis(cfg *config.Config) string {
+	redisURL := fmt.Sprintf("redis://%s:%s", cfg.Redis.Host, cfg.Redis.Port)
+	return redisURL
 }

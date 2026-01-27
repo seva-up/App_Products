@@ -38,6 +38,18 @@ func (s *authRepository) FindById(ctx context.Context, id int) (*models.User, er
 	}
 	return &user, nil
 }
+func (s *authRepository) FindByEmail(ctx context.Context, email string) (*models.User, error) {
+	var user models.User
+	err := s.db.QueryRow(ctx, queryFindByEmail, email).Scan(&user.ID, &user.FirstName, &user.LastName, &user.Password, &user.Email, &user.Role)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, fmt.Errorf("пользователь с email %s не найден", email)
+		}
+		return nil, fmt.Errorf("ошибка при поиске пользователя: %w", err)
+	}
+
+	return &user, nil
+}
 
 func (s *authRepository) Update(ctx context.Context, user *models.User) (*models.User, error) {
 	err := s.db.QueryRow(ctx, queryUpdate, user.FirstName, user.LastName, user.Password, user.Email, user.Role, user.ID).Scan(&user.ID, &user.FirstName, &user.LastName, &user.Password, &user.Email, &user.Role)

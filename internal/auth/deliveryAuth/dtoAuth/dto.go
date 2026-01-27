@@ -7,3 +7,8 @@ type InRegisters struct {
 	Email     string `json:"email"`
 	Role      string `json:"role"`
 }
+
+type LoginRequest struct {
+	Password string `json:"password"`
+	Email    string `yaml:"email"`
+}

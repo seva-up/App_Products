@@ -1,7 +1,13 @@
 package auth
 
-import "net/http"
+import (
+	"github.com/gin-gonic/gin"
+)
 
 type UserDelivery interface {
-	Register(w http.ResponseWriter, r *http.Request)
+	Register(c *gin.Context)
+	Login(c *gin.Context)
+	Logout(c *gin.Context)
+	Refresh(c *gin.Context)
+	GetSession(c *gin.Context)
 }
